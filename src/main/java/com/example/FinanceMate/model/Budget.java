@@ -27,7 +27,7 @@ public class Budget {
     private Category category;
 
     @Column(name = "limit_amount", nullable = false, precision = 19, scale = 2)
-    private BigDecimal limitAmount; // Vastaa SQL: DECIMAL(19, 2) [cite: 996]
+    private BigDecimal limitAmount; // Corresponding SQL: DECIMAL(19, 2) [cite: 996]
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;

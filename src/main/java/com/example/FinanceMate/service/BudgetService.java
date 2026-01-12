@@ -27,5 +27,16 @@ public class BudgetService {
             throw new RuntimeException("There is already a budget for this category!");
         }
         return budgetRepository.save(budget);
+    } 
+    
+    public Budget update(Long id, Budget budgetDetails) {
+        Budget budget = budgetRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Budget not"));
+        
+        budget.setLimitAmount(budgetDetails.getLimitAmount());
+        budget.setStartDate(budgetDetails.getStartDate());
+        budget.setEndDate(budgetDetails.getEndDate());
+        
+        return budgetRepository.save(budget);
     }
 }

@@ -7,6 +7,6 @@ import java.util.List;
 public interface SavingsGoalRepository extends JpaRepository<SavingsGoal, Long> {
     List<SavingsGoal> findByUserId(Long userId);
     
-    // Esim. Dashboardia varten: "Hae keskeneräiset tavoitteet"
+    // E.g. for Dashboard: "Find unfinished goals"
     List<SavingsGoal> findByUserIdAndIsCompletedFalse(Long userId);
 }
