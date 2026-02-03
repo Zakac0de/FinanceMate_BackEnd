@@ -1,5 +1,6 @@
 package com.example.FinanceMate.controller;
 
+import jakarta.validation.Valid;
 import com.example.FinanceMate.model.Transaction;
 import com.example.FinanceMate.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class TransactionController {
 
     // POST /api/v1/transactions
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction) {
         Transaction created = transactionService.save(transaction);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }

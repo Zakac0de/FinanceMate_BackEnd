@@ -2,6 +2,7 @@ package com.example.FinanceMate.service;
 
 import com.example.FinanceMate.model.Transaction;
 import com.example.FinanceMate.repository.TransactionRepository;
+import com.example.FinanceMate.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,12 @@ import java.util.List;
 public class TransactionService {
 
     @Autowired
+    private Categorizer categorizer; 
+    
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private TransactionRepository transactionRepository;
 
     public List<Transaction> findAllByUserId(Long userId) {
@@ -19,9 +26,23 @@ public class TransactionService {
     }
 
     public Transaction save(Transaction transaction) {
+        // If category is missing, try to predict it based on description
+        if (transaction.getCategory() == null && transaction.getDescription() != null) {
+            
+            String predictedCategoryName = categorizer.predictCategory(
+                transaction.getDescription(), 
+                transaction.getAmount().doubleValue()
+            );
+            
+            // Find the category from DB that matches the predicted name
+            categoryRepository.findAll().stream()
+                .filter(c -> c.getName().equalsIgnoreCase(predictedCategoryName))
+                .findFirst()
+                .ifPresent(transaction::setCategory);
+        }
+        
         return transactionRepository.save(transaction);
     }
-
     public void deleteById(Long id) {
         transactionRepository.deleteById(id);
     }

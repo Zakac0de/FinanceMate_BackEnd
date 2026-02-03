@@ -1,5 +1,6 @@
 package com.example.FinanceMate.controller;
 
+import jakarta.validation.Valid;
 import com.example.FinanceMate.model.User;
 import com.example.FinanceMate.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ public class AuthController {
 
     // POST /api/v1/auth/register
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
         try {
             User newUser = authService.register(user);
             return ResponseEntity.ok(newUser);

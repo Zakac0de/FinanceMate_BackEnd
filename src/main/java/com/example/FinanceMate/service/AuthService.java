@@ -2,12 +2,17 @@ package com.example.FinanceMate.service;
 
 import com.example.FinanceMate.model.User;
 import com.example.FinanceMate.repository.UserRepository;
+import com.example.FinanceMate.security.JwtUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private UserRepository userRepository;
@@ -36,6 +41,6 @@ public class AuthService {
         }
 
         // Returning a "token"
-        return "fake-jwt-token-for-" + user.getUsername();
+        return jwtUtil.generateToken(username);
     }
 }

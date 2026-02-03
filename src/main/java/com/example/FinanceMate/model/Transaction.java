@@ -1,5 +1,8 @@
 package com.example.FinanceMate.model;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,16 +30,20 @@ public class Transaction {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal amount; 
 
     private String description;
 
-    @Column(name = "transaction_date", nullable = false)
-    private LocalDate transactionDate;
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    @NotNull(message = "The amount is mandatory") 
+    @Positive(message = "The sum must be greater than 0.") 
+    private BigDecimal amount; 
+
+    @Column(name = "transaction_date", nullable = false)
+    @NotNull(message = "Date is required") 
+    private LocalDate transactionDate;
 
     @PrePersist
     protected void onCreate() {
