@@ -7,9 +7,13 @@ import com.example.FinanceMate.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.example.FinanceMate.dto.CategoryTotalDTO;
+import java.util.Map;
+import java.util.ArrayList;
 
 @Service
 public class TransactionService {
@@ -90,5 +94,30 @@ public class TransactionService {
         }
 
         return dto;
+    }
+
+
+    public List<CategoryTotalDTO> getCategoryTotals(Long userId, int month, int year) {
+        // 1. First, retrieve the events of the selected month (using an existing method)
+        List<TransactionDTO> transactions = findMonthly(userId, month, year);
+
+        // 2. Using Java Stream for Grouping (Grouping By)
+        // This is like SQL's "GROUP BY category"
+        Map<String, BigDecimal> groupedData = transactions.stream()
+            .collect(Collectors.groupingBy(
+                t -> t.getCategoryName() != null ? t.getCategoryName() : "other", // If there is no category, we will put "Other"
+                Collectors.mapping(
+                    TransactionDTO::getAmount,
+                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add) // Sum the prices
+                )
+            ));
+
+        // 3. Change Map -> List<CategoryTotalDTO>
+        List<CategoryTotalDTO> result = new ArrayList<>();
+        groupedData.forEach((name, total) -> {
+            result.add(new CategoryTotalDTO(name, total));
+        });
+
+        return result;
     }
 }
