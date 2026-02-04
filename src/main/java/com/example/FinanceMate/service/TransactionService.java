@@ -1,5 +1,6 @@
 package com.example.FinanceMate.service;
 
+import com.example.FinanceMate.dto.TransactionDTO;
 import com.example.FinanceMate.model.Transaction;
 import com.example.FinanceMate.repository.TransactionRepository;
 import com.example.FinanceMate.repository.CategoryRepository;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -21,11 +23,17 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public List<Transaction> findAllByUserId(Long userId) {
-        return transactionRepository.findByUserIdOrderByTransactionDateDesc(userId);
+    public List<TransactionDTO> findAllByUserId(Long userId) {
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByTransactionDateDesc(userId);
+    
+        // Change each Transaction -> TransactionDTO
+        return transactions.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
-
-    public Transaction save(Transaction transaction) {
+    
+    // The save also returns a safe DTO
+    public TransactionDTO save(Transaction transaction) {
         // If category is missing, try to predict it based on description
         if (transaction.getCategory() == null && transaction.getDescription() != null) {
             
@@ -41,15 +49,46 @@ public class TransactionService {
                 .ifPresent(transaction::setCategory);
         }
         
-        return transactionRepository.save(transaction);
+        // 2. Saving to database
+        Transaction savedTransaction = transactionRepository.save(transaction);
+        
+        // 3. Return as DTO
+        return mapToDTO(savedTransaction);
     }
+
     public void deleteById(Long id) {
         transactionRepository.deleteById(id);
     }
 
-    public List<Transaction> findMonthly(Long userId, int month, int year) {
+    public List<TransactionDTO> findMonthly(Long userId, int month, int year) {
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.plusMonths(1).minusDays(1);
-        return transactionRepository.findByUserIdAndTransactionDateBetween(userId, start, end);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndTransactionDateBetween(userId, start, end);
+        
+        return transactions.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    
+    private TransactionDTO mapToDTO(Transaction transaction) {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setId(transaction.getId());
+        dto.setAmount(transaction.getAmount());
+        dto.setDescription(transaction.getDescription());
+        dto.setTransactionDate(transaction.getTransactionDate());
+        
+      // Secure User ID
+        if (transaction.getUser() != null) {
+            dto.setUserId(transaction.getUser().getId());
+        }
+
+       // Category information (if any)
+        if (transaction.getCategory() != null) {
+            dto.setCategoryName(transaction.getCategory().getName());
+            dto.setCategoryIcon(transaction.getCategory().getIconName());
+        }
+
+        return dto;
     }
 }

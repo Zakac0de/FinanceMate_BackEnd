@@ -14,7 +14,7 @@ public class SimpleCategorizer implements Categorizer {
         // Rule-based detection
         // NOTE: The return strings must match the Category names in your Database exactly!
         
-        if (text.contains("k-market") || text.contains("lidl") || text.contains("s-market") || text.contains("alepa")) {
+        if (text.contains("k-market") || text.contains("lidl") || text.contains("s-market") || text.contains("alepa") || text.contains("prisma")) {
             return "Food"; 
         } else if (text.contains("bensa") || text.contains("abc") || text.contains("neste") || text.contains("shell") || text.contains("hsl"))  {
             return "Transportation"; 

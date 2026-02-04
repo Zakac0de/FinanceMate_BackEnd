@@ -1,5 +1,8 @@
 package com.example.FinanceMate.service;
 
+import com.example.FinanceMate.dto.LoginRequest;
+import com.example.FinanceMate.dto.RegisterRequest;
+import com.example.FinanceMate.dto.UserDTO;
 import com.example.FinanceMate.model.User;
 import com.example.FinanceMate.repository.UserRepository;
 import com.example.FinanceMate.security.JwtUtil;
@@ -18,29 +21,47 @@ public class AuthService {
     private UserRepository userRepository;
 
     // Registration
-    @Transactional
-    public User register(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
+   @Transactional
+    public UserDTO register(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email is already in use!");
 
         }
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username is already in use!");
         }
-        // In real production, the password would be encrypted here
-        return userRepository.save(user);
+
+       // 1. Convert DTO -> Entity (For Database)
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(request.getPassword()); // This will be done later with encoder.encode()
+
+        User savedUser = userRepository.save(user);
+
+        // 2. Convert Entity -> DTO (For retrieval, without password)
+        return mapToDTO(savedUser);
     }
 
     // Login
-    public String login(String username, String password) {
-        User user = userRepository.findByUsername(username)
+    public String login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.getPasswordHash().equals(password)) {
+
+        if (!user.getPasswordHash().equals(request.getPassword())) {
             throw new RuntimeException("Incorrect password");
         }
 
-        // Returning a "token"
-        return jwtUtil.generateToken(username);
+        return jwtUtil.generateToken(user.getUsername());
+    }
+
+    // Helper method for conversion
+    private UserDTO mapToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        return dto;
     }
 }
